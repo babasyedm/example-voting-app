@@ -16,8 +16,7 @@ permissions:
   contents: read
 
 jobs:
-  build_result:
-
+  build_vote:
     permissions:
       checks: write # for sysdiglabs/scan-action to publish the checks
       contents: read # for actions/checkout to fetch code
@@ -27,34 +26,90 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-  
-    - name: Build the result Docker image
-      # Tag image to be built
-      # Change ${{ github.repository }} variable by another image name if you want but don't forget changing also image-tag below
-      run: pwd; docker build --file ./result/Dockerfile --tag ${{ github.repository }}:latest ./result
+
+    - name: Build the Vote Docker image
+      run: pwd; docker build --file ./vote/Dockerfile --tag ${{ github.repository }}:latest ./vote
 
     - name: Sysdig Secure Inline Scan
       id: scan
       uses: sysdiglabs/scan-action@768d7626a14897e0948ea89c8437dd46a814b163
       with:
-        # Tag of the image to analyse.
-        # Change ${{ github.repository }} variable by another image name if you want but don't forget changing also image-tag above
         image-tag: ${{ github.repository }}:latest
-        # API token for Sysdig Scanning auth
-        sysdig-secure-token: ${{ secrets.SYSDIG_SECURE_TOKEN}}
-        # Sysdig secure endpoint. Please read: https://docs.sysdig.com/en/docs/administration/saas-regions-and-ip-ranges/
-        # US-East https://secure.sysdig.com
-        # US-West https://us2.app.sysdig.com
-        # EU      https://eu1.app.sysdig.com
+        sysdig-secure-token: ${{ secrets.SYSDIG_SECURE_TOKEN }}
         sysdig-secure-url: https://app.au1.sysdig.com
-        dockerfile-path: ./result/Dockerfile
+        dockerfile-path: ./vote/Dockerfile
         input-type: docker-daemon
         ignore-failed-scan: true
-        # Sysdig inline scanner requires privileged rights
         run-as-user: root
-        
+
+    # Step to check if SARIF file exists and find its location if not
+    - name: Check for SARIF file
+      id: check_sarif
+      run: |
+        sarif_file="${{ steps.scan.outputs.sarifReport }}"
+       
+        # Check if the SARIF file exists
+        if [ -f "$sarif_file" ]; then
+          echo "SARIF file exists at expected location: $sarif_file"
+        else
+          echo "SARIF file not found at expected location: $sarif_file"
+          echo "Searching for the SARIF file..."
+
+          # Use find command to search for the SARIF file
+          found_file=$(find . -name '*.sarif' 2>/dev/null)
+
+          if [ -n "$found_file" ]; then
+            echo "SARIF file found at: $found_file"
+            echo "Found SARIF file path: $found_file" >> $GITHUB_ENV
+          else
+            echo "SARIF file not found."
+            exit 1  # Fail the job if the file doesn't exist
+          fi
+        fi
+
+    # Step to upload the SARIF file to JFrog
+    - name: Upload SARIF file to JFrog
+      run: |
+        sarif_file="${{ steps.scan.outputs.sarifReport }}"
+        if [ -z "${{ env.found_file }}" ]; then
+          sarif_file="${{ env.found_file }}"
+        fi
+        curl -u "${{ secrets.JFROG_EMAIL }}:${{ secrets.JFROG_TOKEN }}" -T "$sarif_file" "https://trialcifuu3.jfrog.io/artifactory/sysdig/vote/sarif.json"
+
+    # Step to install Node.js and sarif2html
+    - name: Install Node.js and sarif2html
+      run: |
+        curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+        npm install -g sarif2html
+
+    # Step to convert SARIF to HTML
+    - name: Convert SARIF to HTML
+      run: |
+        # Use the found file path if the expected file wasn't found
+        sarif_file="${{ steps.scan.outputs.sarifReport }}"
+        if [ -z "${{ env.found_file }}" ]; then
+          sarif_file="${{ env.found_file }}"
+        fi
+       
+        sarif2html "$sarif_file" -o report.html
+
+    # Step to upload the generated HTML report
+    - name: Upload HTML Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: scan-report-html
+        path: report.html
+
+    # Step to upload the SARIF file to GitHub
     - uses: github/codeql-action/upload-sarif@v3
-      #Upload SARIF file
       if: always()
       with:
         sarif_file: ${{ steps.scan.outputs.sarifReport }}
+
+    # Step to upload the SARIF file as an artifact
+    - name: Upload SARIF File
+      uses: actions/upload-artifact@v3
+      with:
+        name: scan-report-sarif
+        path: ${{ steps.scan.outputs.sarifReport }}
