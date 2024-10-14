@@ -54,7 +54,14 @@ jobs:
         ignore-failed-scan: true
         # Sysdig inline scanner requires privileged rights
         run-as-user: root
-
+        
+    # Upload the HTML report as an artifact
+    - name: Upload HTML Report as Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: sarif-html-report
+        path: output/report.html
+        
     - uses: github/codeql-action/upload-sarif@v3
       #Upload SARIF file
       if: always()
