@@ -74,7 +74,7 @@ jobs:
         if [ -z "${{ env.found_file }}" ]; then
           sarif_file="${{ env.found_file }}"
         fi
-        curl -u "${{ secrets.JFROG_EMAIL }}:${{ secrets.JFROG_TOKEN }}" -T "$sarif_file" "https://trialcifuu3.jfrog.io/artifactory/sysdig/vote/sarif.json"
+        curl -u "${{ secrets.JFROG_EMAIL }}:${{ secrets.JFROG_TOKEN }}" -T "sarif.json" "https://trialcifuu3.jfrog.io/artifactory/sysdig/vote/sarif.json"
 
     # Step to install Node.js and sarif2html
     - name: Install Node.js and sarif2html
