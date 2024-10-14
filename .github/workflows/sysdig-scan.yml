@@ -18,7 +18,7 @@ permissions:
 
 jobs:
 
-  build:
+  build_vote:
 
     permissions:
       checks: write # for sysdiglabs/scan-action to publish the checks
@@ -54,7 +54,25 @@ jobs:
         ignore-failed-scan: true
         # Sysdig inline scanner requires privileged rights
         run-as-user: root
+        
+    - uses: github/codeql-action/upload-sarif@v3
+      #Upload SARIF file
+      if: always()
+      with:
+        sarif_file: ${{ steps.scan.outputs.sarifReport }}
 
+  build_worker:
+
+    permissions:
+      checks: write # for sysdiglabs/scan-action to publish the checks
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    
     - name: Build the worker Docker image
       # Tag image to be built
       # Change ${{ github.repository }} variable by another image name if you want but don't forget changing also image-tag below
@@ -79,7 +97,25 @@ jobs:
         ignore-failed-scan: true
         # Sysdig inline scanner requires privileged rights
         run-as-user: root
+        
+    - uses: github/codeql-action/upload-sarif@v3
+      #Upload SARIF file
+      if: always()
+      with:
+        sarif_file: ${{ steps.scan.outputs.sarifReport }}
 
+  build_result:
+
+    permissions:
+      checks: write # for sysdiglabs/scan-action to publish the checks
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+  
     - name: Build the result Docker image
       # Tag image to be built
       # Change ${{ github.repository }} variable by another image name if you want but don't forget changing also image-tag below
