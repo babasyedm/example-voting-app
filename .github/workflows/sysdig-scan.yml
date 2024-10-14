@@ -48,7 +48,7 @@ jobs:
         # US-East https://secure.sysdig.com
         # US-West https://us2.app.sysdig.com
         # EU      https://eu1.app.sysdig.com
-        sysdig-secure-url: https://us2.app.sysdig.com
+        sysdig-secure-url: https://app.au1.sysdig.com
         dockerfile-path: ./vote/Dockerfile
         input-type: docker-daemon
         ignore-failed-scan: true
