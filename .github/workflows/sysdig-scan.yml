@@ -43,30 +43,12 @@ jobs:
         ignore-failed-scan: true
         run-as-user: root
 
-    # Step to check if SARIF file exists and find its location if not
-    - name: Check for SARIF file
-      id: check_sarif
-      run: |
-        sarif_file="${{ steps.scan.outputs.sarifReport }}"
-       
-        # Check if the SARIF file exists
-        if [ -f "$sarif_file" ]; then
-          echo "SARIF file exists at expected location: $sarif_file"
-        else
-          echo "SARIF file not found at expected location: $sarif_file"
-          echo "Searching for the SARIF file..."
-
-          # Use find command to search for the SARIF file
-          found_file=$(find . -name '*.sarif' 2>/dev/null)
-
-          if [ -n "$found_file" ]; then
-            echo "SARIF file found at: $found_file"
-            echo "Found SARIF file path: $found_file" >> $GITHUB_ENV
-          else
-            echo "SARIF file not found."
-            exit 1  # Fail the job if the file doesn't exist
-          fi
-        fi
+    # Upload SARIF for the "vote" build
+    - name: Upload SARIF for Vote
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: ${{ steps.vote_scan.outputs.sarifReport }}  # Adjust the step name and SARIF file for the "vote" build
 
     # Step to upload the SARIF file to JFrog
     - name: Upload SARIF file to JFrog
@@ -104,30 +86,12 @@ jobs:
         ignore-failed-scan: true
         run-as-user: root
 
-    # Step to check if SARIF file exists and find its location if not
-    - name: Check for SARIF file
-      id: check_sarif
-      run: |
-        sarif_file="${{ steps.scan.outputs.sarifReport }}"
-       
-        # Check if the SARIF file exists
-        if [ -f "$sarif_file" ]; then
-          echo "SARIF file exists at expected location: $sarif_file"
-        else
-          echo "SARIF file not found at expected location: $sarif_file"
-          echo "Searching for the SARIF file..."
-
-          # Use find command to search for the SARIF file
-          found_file=$(find . -name '*.sarif' 2>/dev/null)
-
-          if [ -n "$found_file" ]; then
-            echo "SARIF file found at: $found_file"
-            echo "Found SARIF file path: $found_file" >> $GITHUB_ENV
-          else
-            echo "SARIF file not found."
-            exit 1  # Fail the job if the file doesn't exist
-          fi
-        fi
+    # Upload SARIF for the "worker" build
+    - name: Upload SARIF for Worker
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: ${{ steps.worker_scan.outputs.sarifReport }}  # Adjust the step name and SARIF file for the "worker" build
 
     # Step to upload the SARIF file to JFrog
     - name: Upload SARIF file to JFrog
@@ -165,30 +129,12 @@ jobs:
         ignore-failed-scan: true
         run-as-user: root
 
-    # Step to check if SARIF file exists and find its location if not
-    - name: Check for SARIF file
-      id: check_sarif
-      run: |
-        sarif_file="${{ steps.scan.outputs.sarifReport }}"
-       
-        # Check if the SARIF file exists
-        if [ -f "$sarif_file" ]; then
-          echo "SARIF file exists at expected location: $sarif_file"
-        else
-          echo "SARIF file not found at expected location: $sarif_file"
-          echo "Searching for the SARIF file..."
-
-          # Use find command to search for the SARIF file
-          found_file=$(find . -name '*.sarif' 2>/dev/null)
-
-          if [ -n "$found_file" ]; then
-            echo "SARIF file found at: $found_file"
-            echo "Found SARIF file path: $found_file" >> $GITHUB_ENV
-          else
-            echo "SARIF file not found."
-            exit 1  # Fail the job if the file doesn't exist
-          fi
-        fi
+    # Upload SARIF for the "result" build
+    - name: Upload SARIF for Result
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: ${{ steps.result_scan.outputs.sarifReport }}  # Adjust the step name and SARIF file for the "result" build
 
     # Step to upload the SARIF file to JFrog
     - name: Upload SARIF file to JFrog
