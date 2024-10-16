@@ -48,7 +48,7 @@ jobs:
       uses: github/codeql-action/upload-sarif@v3
       if: always()
       with:
-        sarif_file: ${{ steps.vote_scan.outputs.sarifReport }}  # Adjust the step name and SARIF file for the "vote" build
+        sarif_file: ${{ steps.scan.outputs.sarifReport }}  # Adjust the step name and SARIF file for the "vote" build
 
     # Step to upload the SARIF file to JFrog
     - name: Upload SARIF file to JFrog
@@ -91,7 +91,7 @@ jobs:
       uses: github/codeql-action/upload-sarif@v3
       if: always()
       with:
-        sarif_file: ${{ steps.worker_scan.outputs.sarifReport }}  # Adjust the step name and SARIF file for the "worker" build
+        sarif_file: ${{ steps.scan.outputs.sarifReport }}  # Adjust the step name and SARIF file for the "worker" build
 
     # Step to upload the SARIF file to JFrog
     - name: Upload SARIF file to JFrog
@@ -134,7 +134,7 @@ jobs:
       uses: github/codeql-action/upload-sarif@v3
       if: always()
       with:
-        sarif_file: ${{ steps.result_scan.outputs.sarifReport }}  # Adjust the step name and SARIF file for the "result" build
+        sarif_file: ${{ steps.scan.outputs.sarifReport }}  # Adjust the step name and SARIF file for the "result" build
 
     # Step to upload the SARIF file to JFrog
     - name: Upload SARIF file to JFrog
